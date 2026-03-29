@@ -1,0 +1,22 @@
+{
+  "name": "the-daily-docket",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npx devvit playtest",
+    "build": "npx devvit build",
+    "upload": "npx devvit upload"
+  },
+  "dependencies": {
+    "@devvit/public-api": "0.12.16",
+    "date-fns": "2.30.0",
+    "date-fns-tz": "2.0.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.3.3"
+  },
+  "private": true,
+  "license": "BSD-3-Clause"
+}

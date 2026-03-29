@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Daily Docket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #080810;
+      --surface:     rgba(255,255,255,0.035);
+      --surface-hi:  rgba(255,255,255,0.06);
+      --border:      rgba(201,168,76,0.14);
+      --border-dim:  rgba(255,255,255,0.07);
+      --gold:        #C9A84C;
+      --gold-light:  #E8C86A;
+      --gold-dim:    rgba(201,168,76,0.18);
+      --teal:        #00B4B4;
+      --teal-dim:    rgba(0,180,180,0.18);
+      --green:       #00C853;
+      --red:         #E53935;
+      --orange:      #FF6B35;
+      --text:        #EEEEEE;
+      --text-mid:    #AAAAAA;
+      --text-dim:    #666666;
+      --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    #app { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; }
+
+    /* ── FLASH OVERLAY ────────────────────────────────────────────────────── */
+    #flash {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 200;
+      opacity: 0;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────────────────────── */
+    #header {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid var(--border-dim);
+      background: linear-gradient(180deg, rgba(8,8,18,0.98) 0%, rgba(8,8,18,0.92) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: relative; z-index: 10;
+    }
+
+    .header-brand {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .brand-icon { font-size: 22px; filter: drop-shadow(0 0 6px rgba(201,168,76,0.5)); }
+    .brand-name {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 14px; font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+    }
+    .brand-sub {
+      font-size: 8px; color: var(--text-dim);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .header-stats { display: flex; gap: 7px; align-items: center; }
+
+    .stat-pill {
+      display: flex; align-items: center; gap: 4px;
+      padding: 5px 9px;
+      background: var(--gold-dim);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 20px;
+    }
+    .stat-value {
+      font-size: 13px; font-weight: 700; color: var(--gold-light);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .streak-pill {
+      display: flex; align-items: center; gap: 4px;
+      padding: 5px 9px;
+      background: rgba(255,107,53,0.12);
+      border: 1px solid rgba(255,107,53,0.25);
+      border-radius: 20px;
+    }
+    .streak-value { font-size: 13px; font-weight: 700; color: var(--orange); }
+
+    /* ── CONTENT ──────────────────────────────────────────────────────────── */
+    #content {
+      flex: 1;
+      overflow-y: auto; overflow-x: hidden;
+      padding: 12px 14px 4px;
+      scrollbar-width: none;
+    }
+    #content::-webkit-scrollbar { display: none; }
+
+    /* ── NAV ──────────────────────────────────────────────────────────────── */
+    #nav {
+      flex-shrink: 0;
+      display: flex;
+      padding: 8px 12px 14px;
+      gap: 6px;
+      border-top: 1px solid var(--border-dim);
+      background: linear-gradient(0deg, rgba(8,8,18,0.98) 0%, rgba(8,8,18,0.92) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 3px;
+      padding: 8px 4px;
+      background: var(--surface);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .nav-btn.active {
+      background: var(--gold-dim);
+      border-color: rgba(201,168,76,0.3);
+    }
+    .nav-icon { font-size: 15px; }
+    .nav-label { font-size: 9px; font-weight: 600; letter-spacing: 0.07em; color: var(--text-dim); }
+    .nav-btn.active .nav-label { color: var(--gold); }
+
+    /* ── SCALES SVG ───────────────────────────────────────────────────────── */
+    .scales-wrap {
+      display: flex; justify-content: center;
+      margin: 4px 0 8px;
+    }
+    .scales-svg { width: 200px; height: 140px; overflow: visible; }
+    #scales-arm {
+      transform-origin: 100px 48px;
+      transition: transform 1.1s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+
+    /* ── VOTE BAR ─────────────────────────────────────────────────────────── */
+    .vote-bar-wrap { margin-bottom: 10px; }
+    .vote-bar-labels {
+      display: flex; justify-content: space-between; margin-bottom: 5px;
+    }
+    .vbl { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; }
+    .vbl-g { color: var(--gold); }
+    .vbl-i { color: var(--teal); }
+    .vote-bar-track {
+      height: 6px; border-radius: 3px;
+      background: var(--border-dim); overflow: hidden; display: flex;
+    }
+    .vbf-g {
+      height: 100%;
+      background: linear-gradient(90deg, #C9A84C, #FFD700);
+      transition: width 0.9s cubic-bezier(0.34,1.2,0.64,1);
+      border-radius: 3px 0 0 3px;
+    }
+    .vbf-i {
+      height: 100%;
+      background: linear-gradient(90deg, #00B4B4, #00FFD1);
+      transition: width 0.9s cubic-bezier(0.34,1.2,0.64,1);
+      border-radius: 0 3px 3px 0;
+    }
+    .vote-count { font-size: 10px; color: var(--text-dim); text-align: center; margin-top: 4px; }
+
+    /* ── CASE CARD ────────────────────────────────────────────────────────── */
+    .case-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .case-meta {
+      font-size: 9px; letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase; margin-bottom: 7px;
+    }
+    .case-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--text); line-height: 1.45;
+      margin-bottom: 7px;
+    }
+    .case-desc { font-size: 12px; color: var(--text-mid); line-height: 1.55; }
+
+    /* ── VERDICT BUTTONS ──────────────────────────────────────────────────── */
+    .section-label {
+      font-size: 9px; letter-spacing: 0.12em; color: var(--text-dim);
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .verdict-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+
+    .v-btn {
+      padding: 14px 8px; border-radius: var(--r-md);
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      background: var(--surface);
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .v-btn-g { border-color: rgba(201,168,76,0.2); }
+    .v-btn-g.sel {
+      background: rgba(201,168,76,0.12);
+      border-color: var(--gold);
+      box-shadow: 0 0 22px rgba(201,168,76,0.28), inset 0 0 24px rgba(201,168,76,0.06);
+    }
+    .v-btn-i { border-color: rgba(0,180,180,0.2); }
+    .v-btn-i.sel {
+      background: rgba(0,180,180,0.12);
+      border-color: var(--teal);
+      box-shadow: 0 0 22px rgba(0,180,180,0.28), inset 0 0 24px rgba(0,180,180,0.06);
+    }
+    .v-emoji { font-size: 26px; }
+    .v-label {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 13px; font-weight: 700; letter-spacing: 0.05em;
+    }
+    .v-btn-g .v-label { color: var(--gold-light); }
+    .v-btn-i .v-label { color: var(--teal); }
+    .v-sub { font-size: 10px; color: var(--text-dim); }
+
+    /* ── STAKE BUTTONS ────────────────────────────────────────────────────── */
+    .stake-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .s-btn {
+      padding: 6px 12px; border-radius: 20px;
+      border: 1px solid var(--border-dim);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--text-dim);
+      transition: all 0.18s ease;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .s-btn.sel {
+      background: rgba(220,20,60,0.14);
+      border-color: rgba(220,20,60,0.4);
+      color: #FF6B6B;
+    }
+    .s-btn-allin { color: #FF5555; border-color: rgba(255,85,85,0.2); }
+    .s-btn-allin.sel {
+      background: rgba(255,85,85,0.14);
+      border-color: #FF5555;
+      box-shadow: 0 0 10px rgba(255,85,85,0.25);
+    }
+
+    /* ── SUBMIT BUTTON ────────────────────────────────────────────────────── */
+    .submit-btn {
+      width: 100%; padding: 14px;
+      border-radius: var(--r-md); border: 2px solid;
+      cursor: pointer;
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.07em;
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .submit-btn.ready {
+      background: linear-gradient(135deg, rgba(0,50,20,0.7), rgba(0,30,12,0.7));
+      border-color: var(--green); color: var(--green);
+      box-shadow: 0 0 18px rgba(0,200,83,0.2);
+    }
+    .submit-btn.ready:active { transform: scale(0.98); }
+    .submit-btn.off {
+      background: var(--surface); border-color: var(--border-dim);
+      color: var(--text-dim); cursor: default;
+    }
+
+    /* ── VOTED (pending) CARD ─────────────────────────────────────────────── */
+    .voted-card {
+      background: var(--surface);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: var(--r-lg); padding: 18px 14px; text-align: center;
+    }
+    .voted-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 15px; font-weight: 700; color: var(--gold-light);
+      margin-bottom: 10px;
+    }
+    .ruling-badge {
+      display: inline-block; padding: 7px 16px;
+      border-radius: var(--r-sm);
+      font-family: 'Cinzel', Georgia, serif; font-size: 14px; font-weight: 700;
+    }
+    .ruling-badge.guilty {
+      background: rgba(201,168,76,0.14); border: 1px solid var(--gold); color: var(--gold-light);
+    }
+    .ruling-badge.innocent {
+      background: rgba(0,180,180,0.14); border: 1px solid var(--teal); color: var(--teal);
+    }
+    .stake-info { font-size: 12px; color: var(--text-mid); margin: 10px 0 0; }
+    .stake-info strong { color: var(--gold-light); }
+    .streak-risk {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 12px; margin-top: 10px;
+      background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.2);
+      border-radius: var(--r-sm);
+      font-size: 12px; font-weight: 600; color: var(--orange);
+    }
+    .court-note { font-size: 10px; color: var(--text-dim); margin-top: 10px; }
+
+    /* ── RESULT CARD ──────────────────────────────────────────────────────── */
+    .result-card {
+      border-radius: var(--r-xl); padding: 20px 16px; text-align: center;
+      margin-bottom: 10px;
+    }
+    .result-card.win {
+      background: linear-gradient(145deg, rgba(0,60,25,0.55), rgba(0,35,12,0.55));
+      border: 2px solid var(--green);
+      box-shadow: 0 0 32px rgba(0,200,83,0.14);
+    }
+    .result-card.lose {
+      background: linear-gradient(145deg, rgba(70,0,0,0.55), rgba(45,0,0,0.55));
+      border: 2px solid var(--red);
+      box-shadow: 0 0 32px rgba(229,57,53,0.14);
+    }
+    .result-headline {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 20px; font-weight: 900; letter-spacing: 0.04em;
+      margin-bottom: 3px;
+    }
+    .result-card.win .result-headline { color: var(--green); }
+    .result-card.lose .result-headline { color: var(--red); }
+    .result-case-id { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: 14px; }
+
+    .result-vs {
+      display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 14px;
+    }
+    .result-side { flex: 1; text-align: center; }
+    .rsl { font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+    .rsv {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 16px; font-weight: 700;
+    }
+    .vs { font-size: 11px; color: var(--text-dim); font-weight: 700; }
+
+    .result-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 0 0 14px; }
+
+    .karma-delta {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 32px; font-weight: 900;
+      animation: deltaIn 0.6s 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    .karma-delta.pos { color: var(--green); }
+    .karma-delta.neg { color: var(--red); }
+    .karma-delta-label {
+      font-size: 10px; color: var(--text-dim);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-top: 2px;
+    }
+    .streak-result {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 12px; margin-top: 12px;
+      background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.22);
+      border-radius: var(--r-sm); font-size: 13px; font-weight: 600; color: var(--orange);
+    }
+    .reset-note { font-size: 11px; color: var(--text-dim); margin-top: 10px; }
+
+    /* ── LEADERBOARD ──────────────────────────────────────────────────────── */
+    .lb-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .lb-tab {
+      flex: 1; padding: 7px; text-align: center;
+      background: var(--surface); border: 1px solid var(--border-dim);
+      border-radius: var(--r-sm); cursor: pointer;
+      font-size: 10px; font-weight: 600; color: var(--text-dim);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      transition: all 0.18s;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .lb-tab.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.3); color: var(--gold); }
+
+    .lb-entry {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; margin-bottom: 6px;
+      background: var(--surface); border: 1px solid var(--border-dim);
+      border-radius: var(--r-md);
+    }
+    .lb-entry.me { border-color: rgba(201,168,76,0.28); background: var(--gold-dim); }
+    .lb-rank {
+      font-family: 'Cinzel', Georgia, serif; font-size: 15px; font-weight: 700;
+      color: var(--text-dim); width: 26px; text-align: center; flex-shrink: 0;
+    }
+    .lb-rank.top { color: var(--gold-light); }
+    .lb-user { flex: 1; }
+    .lb-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .lb-score {
+      font-family: 'Cinzel', Georgia, serif; font-size: 14px; font-weight: 700;
+      color: var(--gold-light); font-variant-numeric: tabular-nums;
+    }
+
+    /* ── SESSIONS PLACEHOLDER ─────────────────────────────────────────────── */
+    .sessions-wrap { text-align: center; padding: 50px 16px; }
+    .sessions-icon { font-size: 48px; margin-bottom: 14px; }
+    .sessions-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 18px; font-weight: 700; color: var(--gold-light); margin-bottom: 10px;
+    }
+    .sessions-desc { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+    .sessions-desc strong { color: var(--gold); }
+
+    .event-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 14px;
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 8px; text-align: left;
+    }
+    .event-icon { font-size: 28px; }
+    .event-info { flex: 1; }
+    .event-name { font-family: 'Cinzel', Georgia, serif; font-size: 13px; font-weight: 700; color: var(--text); }
+    .event-desc { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+    .event-badge {
+      font-size: 10px; font-weight: 700; color: var(--gold);
+      background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3);
+      padding: 3px 8px; border-radius: 10px;
+    }
+
+    /* ── LOADING / EMPTY ──────────────────────────────────────────────────── */
+    .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; gap: 12px; }
+    .loading-icon { font-size: 38px; animation: pulse 1.6s ease-in-out infinite; }
+    .loading-text { font-family: 'Cinzel', Georgia, serif; font-size: 13px; color: var(--text-dim); letter-spacing: 0.1em; }
+
+    .empty-msg { text-align: center; padding: 40px 16px; color: var(--text-dim); font-size: 13px; }
+
+    .no-case-wrap { text-align: center; padding: 40px 16px; }
+    .no-case-icon { font-size: 40px; margin-bottom: 12px; }
+    .no-case-title { font-family: 'Cinzel', Georgia, serif; font-size: 16px; color: var(--text); margin-bottom: 8px; }
+    .no-case-text { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+    /* ── ANIMATIONS ───────────────────────────────────────────────────────── */
+    @keyframes fadeIn   { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes deltaIn  { from { opacity:0; transform:translateY(22px) scale(0.75); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes pulse    { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.45; transform:scale(0.92); } }
+    @keyframes flashG   { 0%{background:rgba(0,200,83,0)} 25%{background:rgba(0,200,83,0.22)} 100%{background:rgba(0,200,83,0)} }
+    @keyframes flashR   { 0%{background:rgba(229,57,53,0)} 25%{background:rgba(229,57,53,0.22)} 100%{background:rgba(229,57,53,0)} }
+    @keyframes flashAu  { 0%{background:rgba(201,168,76,0)} 25%{background:rgba(201,168,76,0.18)} 100%{background:rgba(201,168,76,0)} }
+
+    .ani-fade { animation: fadeIn 0.38s ease both; }
+    .ani-flash-g { animation: flashG 0.8s ease forwards; }
+    .ani-flash-r { animation: flashR 0.8s ease forwards; }
+    .ani-flash-au { animation: flashAu 0.6s ease forwards; }
+
+    /* staggered list items */
+    .lb-entry:nth-child(1) { animation: fadeIn 0.3s 0.00s ease both; }
+    .lb-entry:nth-child(2) { animation: fadeIn 0.3s 0.05s ease both; }
+    .lb-entry:nth-child(3) { animation: fadeIn 0.3s 0.10s ease both; }
+    .lb-entry:nth-child(4) { animation: fadeIn 0.3s 0.15s ease both; }
+    .lb-entry:nth-child(5) { animation: fadeIn 0.3s 0.20s ease both; }
+    .lb-entry:nth-child(n+6) { animation: fadeIn 0.3s 0.25s ease both; }
+
+    /* error toast */
+    .toast {
+      position: fixed; bottom: 76px; left: 50%; transform: translateX(-50%);
+      background: rgba(229,57,53,0.92); color: #fff;
+      padding: 10px 20px; border-radius: var(--r-sm);
+      font-size: 13px; font-weight: 600;
+      z-index: 300; white-space: nowrap;
+      animation: fadeIn 0.25s ease;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="flash"></div>
+
+  <!-- HEADER -->
+  <header id="header">
+    <div class="header-brand">
+      <span class="brand-icon">⚖️</span>
+      <div>
+        <div class="brand-name">THE DAILY DOCKET</div>
+        <div class="brand-sub">Highest Court of Reddit</div>
+      </div>
+    </div>
+    <div class="header-stats" id="hstats"></div>
+  </header>
+
+  <!-- CONTENT -->
+  <main id="content">
+    <div class="loading-wrap">
+      <div class="loading-icon">⚖️</div>
+      <div class="loading-text">SUMMONING THE COURT…</div>
+    </div>
+  </main>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-btn active" data-view="daily" onclick="gotoView('daily')">
+      <span class="nav-icon">📅</span>
+      <span class="nav-label">DOCKET</span>
+    </div>
+    <div class="nav-btn" data-view="sessions" onclick="gotoView('sessions')">
+      <span class="nav-icon">🏛️</span>
+      <span class="nav-label">SESSIONS</span>
+    </div>
+    <div class="nav-btn" data-view="leaderboard" onclick="gotoView('leaderboard')">
+      <span class="nav-icon">🏆</span>
+      <span class="nav-label">RECORDS</span>
+    </div>
+  </nav>
+</div>
+
+<script>
+// Catch uncaught JS errors and surface them in the loading screen
+window.onerror = function(msg, src, line) {
+  if (!S || !S.loaded) {
+    const c = document.getElementById('content');
+    if (c) c.innerHTML = `<div class="no-case-wrap" style="padding:40px 16px;text-align:center;">
+      <div class="no-case-icon">⚠️</div>
+      <div class="no-case-title" style="color:var(--red)">App Error</div>
+      <div class="no-case-text" style="font-size:11px;">${msg}<br>${src}:${line}</div>
+    </div>`;
+  }
+  return false;
+};
+
+// ════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════
+const S = {
+  view: 'daily',
+  user: null,
+  dailyCase: null,
+  existingRuling: null,
+  pick: null,       // 'guilty' | 'innocent'
+  stake: 100,
+  lb: [],
+  lbPeriod: 'alltime',
+  loaded: false,
+};
+
+// ════════════════════════════════════════════════════════════════════════
+// MESSAGING
+// ════════════════════════════════════════════════════════════════════════
+function send(msg) { window.parent.postMessage(msg, '*'); }
+
+window.addEventListener('message', e => {
+  if (e.data?.type === 'devvit-message') onMsg(e.data.data?.message);
+});
+
+function onMsg(msg) {
+  if (!msg) return;
+  if (msg.type === 'INIT') {
+    S.user = msg.user; S.dailyCase = msg.dailyCase; S.existingRuling = msg.existingRuling;
+    S.loaded = true;
+    const opts = stakeOpts(S.user.karma);
+    S.stake = opts[0] ?? 100;
+    renderHeader(); renderView();
+  }
+  if (msg.type === 'RULING_CONFIRMED') {
+    S.existingRuling = msg.ruling; S.user = msg.user;
+    // Update case vote counts optimistically
+    if (S.dailyCase) {
+      S.dailyCase.totalRulings++;
+      if (msg.ruling.prediction === 'guilty') S.dailyCase.guiltyCount++;
+      else S.dailyCase.innocentCount++;
+    }
+    flash('au'); renderHeader(); renderView();
+  }
+  if (msg.type === 'LEADERBOARD') {
+    S.lb = msg.entries; S.lbPeriod = msg.period;
+    const el = document.getElementById('lb-list');
+    if (el) el.innerHTML = lbEntriesHTML();
+  }
+  if (msg.type === 'SETTINGS_UPDATED') { S.user = msg.user; renderHeader(); }
+  if (msg.type === 'ERROR') {
+    if (!S.loaded) {
+      // Show error in loading area so it's not missed as a toast
+      document.getElementById('content').innerHTML = `
+        <div class="no-case-wrap" style="padding:40px 16px;text-align:center;">
+          <div class="no-case-icon">⚠️</div>
+          <div class="no-case-title" style="color:var(--red)">Connection Error</div>
+          <div class="no-case-text">${msg.message}<br><br>
+            Close this post and reopen it to try again.</div>
+        </div>`;
+    } else {
+      toast(msg.message);
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════════════
+const fmt = n => (n ?? 0).toLocaleString();
+
+function stakeOpts(karma) {
+  return [100,500,1000,2500,5000].filter(v => v <= karma);
+}
+
+function flameIcon(n) {
+  if (n >= 30) return '🔥🔥🔥';
+  if (n >= 14) return '🔥🔥';
+  if (n >= 7)  return '🔥';
+  return '⚡';
+}
+
+function flash(type) {
+  const el = document.getElementById('flash');
+  el.className = '';
+  void el.offsetWidth;
+  el.className = type === 'g' ? 'ani-flash-g' : type === 'r' ? 'ani-flash-r' : 'ani-flash-au';
+}
+
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SCALES SVG
+// ════════════════════════════════════════════════════════════════════════
+function scalesSVG(g, i) {
+  const total = g + i;
+  const ratio = total > 0 ? g / total : 0.5;
+  const deg = (ratio - 0.5) * 40;
+  return `
+<svg class="scales-svg" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="gf"><feGaussianBlur stdDeviation="2.5" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+    <linearGradient id="armGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#B8922A"/>
+      <stop offset="50%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#B8922A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Finial top -->
+  <polygon points="100,4 107,18 93,18" fill="#C9A84C" filter="url(#gf)"/>
+  <!-- Vertical rod -->
+  <rect x="98.5" y="18" width="3" height="86" rx="1.5" fill="#C9A84C"/>
+  <!-- Base -->
+  <rect x="75" y="132" width="50" height="5" rx="2.5" fill="#C9A84C"/>
+  <!-- Center pivot -->
+  <circle cx="100" cy="50" r="7" fill="#B8922A" filter="url(#gf)"/>
+  <circle cx="100" cy="50" r="4" fill="#FFD700"/>
+
+  <!-- Rotating arm group -->
+  <g id="scales-arm" style="transform:rotate(${deg}deg);transform-origin:100px 50px;transition:transform 1.1s cubic-bezier(0.34,1.2,0.64,1)">
+    <!-- Arm beam -->
+    <rect x="16" y="48" width="168" height="4" rx="2" fill="url(#armGrad)" filter="url(#gf)"/>
+    <!-- Arm end caps -->
+    <circle cx="16" cy="50" r="4" fill="#C9A84C"/>
+    <circle cx="184" cy="50" r="4" fill="#C9A84C"/>
+
+    <!-- LEFT (GUILTY) -->
+    <!-- Chain -->
+    <line x1="16" y1="54" x2="16" y2="94" stroke="#C9A84C" stroke-width="1.5" stroke-dasharray="3.5 2.5" opacity="0.65"/>
+    <!-- Pan fill -->
+    <ellipse cx="16" cy="100" rx="24" ry="8" fill="rgba(201,168,76,0.18)"/>
+    <!-- Pan rim -->
+    <ellipse cx="16" cy="100" rx="24" ry="8" fill="none" stroke="#C9A84C" stroke-width="2" filter="url(#gf)"/>
+    <!-- Label -->
+    <text x="16" y="103" text-anchor="middle" fill="#E8C86A" font-size="7.5" font-family="Georgia,serif" font-weight="bold">GUILTY</text>
+
+    <!-- RIGHT (INNOCENT) -->
+    <!-- Chain -->
+    <line x1="184" y1="54" x2="184" y2="94" stroke="#00B4B4" stroke-width="1.5" stroke-dasharray="3.5 2.5" opacity="0.65"/>
+    <!-- Pan fill -->
+    <ellipse cx="184" cy="100" rx="24" ry="8" fill="rgba(0,180,180,0.18)"/>
+    <!-- Pan rim -->
+    <ellipse cx="184" cy="100" rx="24" ry="8" fill="none" stroke="#00B4B4" stroke-width="2" filter="url(#gf)"/>
+    <!-- Label -->
+    <text x="184" y="103" text-anchor="middle" fill="#00D4D4" font-size="6.5" font-family="Georgia,serif" font-weight="bold">INNOCENT</text>
+  </g>
+</svg>`;
+}
+
+function updateScales(g, i) {
+  const arm = document.getElementById('scales-arm');
+  if (!arm) return;
+  const total = g + i;
+  const ratio = total > 0 ? g / total : 0.5;
+  arm.style.transform = `rotate(${(ratio - 0.5) * 40}deg)`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// HEADER
+// ════════════════════════════════════════════════════════════════════════
+function renderHeader() {
+  const el = document.getElementById('hstats');
+  if (!el || !S.user) return;
+  const { karma, currentStreak } = S.user;
+  el.innerHTML = `
+    <div class="stat-pill">💰 <span class="stat-value">${fmt(karma)}</span></div>
+    ${currentStreak > 0 ? `<div class="streak-pill">${flameIcon(currentStreak)} <span class="streak-value">${currentStreak}</span></div>` : ''}
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// VIEW ROUTER
+// ════════════════════════════════════════════════════════════════════════
+function gotoView(v) {
+  S.view = v;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  renderView();
+  if (v === 'leaderboard' && S.lb.length === 0) send({ type: 'GET_LEADERBOARD', period: S.lbPeriod });
+}
+
+function renderView() {
+  if (!S.loaded) return;
+  const c = document.getElementById('content');
+  if (S.view === 'daily') renderDaily(c);
+  else if (S.view === 'sessions') renderSessions(c);
+  else renderLeaderboard(c);
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// DAILY VIEW
+// ════════════════════════════════════════════════════════════════════════
+function renderDaily(c) {
+  const { dailyCase: dc, existingRuling: r, user: u } = S;
+
+  if (!dc) {
+    c.innerHTML = `<div class="no-case-wrap ani-fade">
+      <div class="no-case-icon">🔨</div>
+      <div class="no-case-title">Court Not Yet in Session</div>
+      <div class="no-case-text">Today's case hasn't been filed yet.<br>The gavel drops at midnight ET.</div>
+    </div>`;
+    return;
+  }
+
+  const g = dc.guiltyCount, i = dc.innocentCount, tot = dc.totalRulings;
+  const gPct = tot > 0 ? Math.round(g / tot * 100) : 50;
+  const iPct = 100 - gPct;
+
+  const scalesBlock = `
+    <div class="scales-wrap">${scalesSVG(g, i)}</div>
+    <div class="vote-bar-wrap">
+      <div class="vote-bar-labels">
+        <span class="vbl vbl-g">⚖️ GUILTY ${gPct}%</span>
+        <span class="vbl vbl-i">INNOCENT ${iPct}% ⚖️</span>
+      </div>
+      <div class="vote-bar-track">
+        <div class="vbf-g" style="width:${gPct}%"></div>
+        <div class="vbf-i" style="width:${iPct}%"></div>
+      </div>
+      <div class="vote-count">${fmt(tot)} judges seated</div>
+    </div>`;
+
+  // ── RESULT ──
+  if (r && r.result !== 'pending' && dc.status === 'resolved') {
+    const won = r.result === 'correct';
+    const delta = r.karmaChange;
+    setTimeout(() => flash(won ? 'g' : 'r'), 250);
+
+    c.innerHTML = `
+      ${scalesBlock}
+      <div class="result-card ${won ? 'win' : 'lose'} ani-fade">
+        <div class="result-headline">${won ? '⚖️ JUSTICE SERVED' : '⚖️ JUSTICE DENIED'}</div>
+        <div class="result-case-id">CASE #${dc.caseId}</div>
+        <div class="result-vs">
+          <div class="result-side">
+            <div class="rsl">Your Ruling</div>
+            <div class="rsv" style="color:${r.prediction==='guilty'?'var(--gold-light)':'var(--teal)'}">
+              ${r.prediction.toUpperCase()}
+            </div>
+          </div>
+          <div class="vs">VS</div>
+          <div class="result-side">
+            <div class="rsl">Truth</div>
+            <div class="rsv" style="color:${dc.actualResult==='guilty'?'var(--gold-light)':'var(--teal)'}">
+              ${(dc.actualResult || '?').toUpperCase()}
+            </div>
+          </div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="karma-delta ${delta>=0?'pos':'neg'}">${delta>=0?'+':''}${fmt(delta)}</div>
+        <div class="karma-delta-label">Karma ${won ? 'Earned' : 'Lost'}</div>
+        ${won && u.currentStreak > 0 ? `<div class="streak-result">${flameIcon(u.currentStreak)} ${u.currentStreak}-Day Streak!</div>` : ''}
+        ${!won ? `<div class="reset-note">Streak reset. The court shows no mercy.</div>` : ''}
+      </div>
+      <div style="text-align:center;padding:8px 0;"><div style="font-size:11px;color:var(--text-dim);">Return tomorrow for the next case.</div></div>
+    `;
+    return;
+  }
+
+  // ── PENDING (voted, awaiting result) ──
+  if (r && r.result === 'pending') {
+    c.innerHTML = `
+      ${scalesBlock}
+      <div class="voted-card ani-fade">
+        <div class="voted-title">⚖️ VERDICT RECORDED</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Case #${dc.caseId}</div>
+        <div class="ruling-badge ${r.prediction}">${r.prediction.toUpperCase()}</div>
+        <div class="stake-info">Stake: <strong>${fmt(r.stake)}</strong> karma</div>
+        ${u.currentStreak > 0 ? `<div class="streak-risk">${flameIcon(u.currentStreak)} ${u.currentStreak}-day streak on the line</div>` : ''}
+        <div class="court-note">Verdict at 1 AM ET · Notification at 9 AM ET</div>
+      </div>
+      <div style="padding:10px 0 4px;">
+        <div style="font-size:11px;color:var(--text-dim);text-align:center;font-style:italic;">"${dc.title}"</div>
+      </div>
+    `;
+    return;
+  }
+
+  // ── OPEN FOR VOTING ──
+  const opts = stakeOpts(u.karma);
+
+  c.innerHTML = `
+    ${scalesBlock}
+    <div class="case-card ani-fade">
+      <div class="case-meta">Case #${dc.caseId} · r/${dc.subreddit || '?'} · ${dc.metric || ''}</div>
+      <div class="case-title">${dc.title}</div>
+      <div class="case-desc">${dc.description}</div>
+    </div>
+    <div>
+      <div class="section-label">Render Your Verdict</div>
+      <div class="verdict-row">
+        <div class="v-btn v-btn-g ${S.pick==='guilty'?'sel':''}" onclick="pickVerdict('guilty')">
+          <span class="v-emoji">⚖️</span>
+          <span class="v-label">GUILTY</span>
+          <span class="v-sub">YES it will</span>
+        </div>
+        <div class="v-btn v-btn-i ${S.pick==='innocent'?'sel':''}" onclick="pickVerdict('innocent')">
+          <span class="v-emoji">🔔</span>
+          <span class="v-label">INNOCENT</span>
+          <span class="v-sub">NO it won't</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">
+        Stake Your Karma
+        ${u.currentStreak > 0 ? `<span style="color:var(--orange);float:right;">${flameIcon(u.currentStreak)} ${u.currentStreak}x streak</span>` : ''}
+      </div>
+      <div class="stake-row">
+        ${opts.map(v => `<div class="s-btn ${S.stake===v?'sel':''}" onclick="pickStake(${v})">${fmt(v)}</div>`).join('')}
+        <div class="s-btn s-btn-allin ${S.stake===u.karma?'sel':''}" onclick="pickStake(${u.karma})">ALL IN</div>
+      </div>
+    </div>
+    <div id="submit-wrap">${submitBtn()}</div>
+    <div style="height:8px;"></div>
+  `;
+}
+
+function submitBtn() {
+  const ready = S.pick !== null;
+  return `<div class="submit-btn ${ready?'ready':'off'}" onclick="${ready?'doSubmit()':''}">
+    ⚖️ SUBMIT VERDICT
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SESSIONS VIEW
+// ════════════════════════════════════════════════════════════════════════
+function renderSessions(c) {
+  c.innerHTML = `
+    <div class="ani-fade">
+      <div style="margin-bottom:10px;">
+        <div class="section-label">Upcoming Events</div>
+      </div>
+      <div class="event-card">
+        <div class="event-icon">🎵</div>
+        <div class="event-info">
+          <div class="event-name">68th Annual GRAMMY Awards</div>
+          <div class="event-desc">Predict the biggest night in music · 6 questions</div>
+        </div>
+        <div class="event-badge">5× BONUS</div>
+      </div>
+      <div class="event-card">
+        <div class="event-icon">🎬</div>
+        <div class="event-info">
+          <div class="event-name">98th Academy Awards</div>
+          <div class="event-desc">Hollywood's biggest night · 2 questions</div>
+        </div>
+        <div class="event-badge">5× BONUS</div>
+      </div>
+      <div class="event-card">
+        <div class="event-icon">📈</div>
+        <div class="event-info">
+          <div class="event-name">Weekly Trending Session</div>
+          <div class="event-desc">Auto-generated from Reddit trends</div>
+        </div>
+        <div class="event-badge">WEEKLY</div>
+      </div>
+      <div style="margin-top:16px;padding:14px;background:var(--surface);border:1px solid var(--border-dim);border-radius:var(--r-md);text-align:center;">
+        <div style="font-size:12px;color:var(--text-dim);line-height:1.7;">
+          Special Sessions open for voting when events are live.<br>
+          Complete <strong style="color:var(--gold)">all questions</strong> to earn the <strong style="color:var(--gold)">5× karma bonus</strong>.
+        </div>
+      </div>
+      <div style="margin-top:20px;text-align:center;padding-bottom:8px;">
+        <span style="font-size:10px;color:var(--text-dim);letter-spacing:0.06em;">
+          <a href="https://www.reddit.com/r/thedailydocket/wiki/terms" target="_blank" style="color:var(--text-dim);text-decoration:underline;text-underline-offset:3px;">Terms of Service</a>
+          &nbsp;·&nbsp;
+          <a href="https://www.reddit.com/r/thedailydocket/wiki/privacy" target="_blank" style="color:var(--text-dim);text-decoration:underline;text-underline-offset:3px;">Privacy Policy</a>
+        </span>
+      </div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// LEADERBOARD VIEW
+// ════════════════════════════════════════════════════════════════════════
+function renderLeaderboard(c) {
+  c.innerHTML = `
+    <div class="lb-tabs">
+      <div class="lb-tab ${S.lbPeriod==='daily'?'active':''}" onclick="switchLb('daily')">Daily</div>
+      <div class="lb-tab ${S.lbPeriod==='weekly'?'active':''}" onclick="switchLb('weekly')">Weekly</div>
+      <div class="lb-tab ${S.lbPeriod==='alltime'?'active':''}" onclick="switchLb('alltime')">All Time</div>
+    </div>
+    <div id="lb-list" class="ani-fade">
+      ${S.lb.length === 0
+        ? '<div class="empty-msg">Loading records…</div>'
+        : lbEntriesHTML()}
+    </div>
+  `;
+}
+
+function lbEntriesHTML() {
+  if (!S.lb.length) return '<div class="empty-msg">No records yet. Be the first!</div>';
+  return S.lb.map((e, i) => `
+    <div class="lb-entry ${e.isCurrentUser?'me':''}">
+      <div class="lb-rank ${i<3?'top':''}">
+        ${i===0?'🥇':i===1?'🥈':i===2?'🥉':e.rank}
+      </div>
+      <div class="lb-user">
+        <div class="lb-name">${e.isCurrentUser ? '👤 You' : e.username}</div>
+      </div>
+      <div class="lb-score">${fmt(e.score)}</div>
+    </div>
+  `).join('');
+}
+
+function switchLb(period) {
+  S.lbPeriod = period; S.lb = [];
+  send({ type: 'GET_LEADERBOARD', period });
+  renderLeaderboard(document.getElementById('content'));
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// INTERACTIONS
+// ════════════════════════════════════════════════════════════════════════
+function pickVerdict(p) {
+  S.pick = p;
+  document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('sel'));
+  const t = document.querySelector(`.v-btn-${p[0]}`);
+  if (t) t.classList.add('sel');
+  const sw = document.getElementById('submit-wrap');
+  if (sw) sw.innerHTML = submitBtn();
+}
+
+function pickStake(v) {
+  S.stake = v;
+  document.querySelectorAll('.s-btn').forEach(b => b.classList.remove('sel'));
+  // Trigger re-render of stake row to update selection cleanly
+  const c = document.getElementById('content');
+  renderDaily(c);
+}
+
+function doSubmit() {
+  if (!S.pick || !S.user) return;
+  if (S.user.karma < S.stake || S.stake < 100) { toast('Insufficient karma for that stake.'); return; }
+  const btn = document.querySelector('.submit-btn.ready');
+  if (btn) { btn.className = 'submit-btn off'; btn.textContent = '⏳ RECORDING…'; }
+  send({ type: 'SUBMIT_RULING', prediction: S.pick, stake: S.stake });
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// BOOT
+// Primary: server proactively pushes INIT when button is pressed.
+// Fallback: if INIT hasn't arrived after 2s (timing race), request it.
+// Hard timeout: show error after 12s if still nothing.
+// ════════════════════════════════════════════════════════════════════════
+// Request init data immediately, and retry if no response
+send({ type: 'INIT_REQUEST' });
+
+// Retry every 2s in case the first message was lost during mount
+const _initRetry = setInterval(() => {
+  if (S.loaded) { clearInterval(_initRetry); return; }
+  send({ type: 'INIT_REQUEST' });
+}, 2000);
+
+setTimeout(() => {
+  clearInterval(_initRetry);
+  if (!S.loaded) {
+    document.getElementById('content').innerHTML = `
+      <div class="no-case-wrap" style="padding:40px 16px;text-align:center;">
+        <div class="no-case-icon">⚠️</div>
+        <div class="no-case-title">Taking too long…</div>
+        <div class="no-case-text">Close this post and tap <strong>ENTER THE COURT</strong> again.</div>
+      </div>`;
+  }
+}, 12000);
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
+    "jsxFactory": "Devvit.createElement",
+    "jsxFragmentFactory": "Devvit.Fragment",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"]
+  },
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,14 @@
+name: the-daily-docket
+version: 0.0.0
+permissions:
+  - redditAPI
+  - redis
+  - scheduler
+scheduler:
+  jobs:
+    - name: generate-daily-case
+      cron: 0 0 * * *
+    - name: resolve-daily-cases
+      cron: 0 1 * * *
+    - name: daily-verdict-reminder
+      cron: 0 9 * * *
