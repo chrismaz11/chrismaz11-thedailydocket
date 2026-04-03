@@ -48,6 +48,216 @@
       opacity: 0;
     }
 
+    #court-intro {
+      position: fixed; inset: 0; z-index: 240;
+      display: flex; align-items: center; justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at top, rgba(201,168,76,0.18), transparent 35%),
+        linear-gradient(180deg, rgba(3,5,10,0.98) 0%, rgba(8,8,18,0.98) 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+    #court-intro.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .intro-stage {
+      width: min(100%, 420px);
+      min-height: 460px;
+      position: relative;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+    .intro-spotlight {
+      position: absolute; inset: 4% 8% auto;
+      height: 44%;
+      background: radial-gradient(circle, rgba(255,228,140,0.22), transparent 70%);
+      filter: blur(10px);
+      transform: translateZ(-120px);
+    }
+    .judge-bench {
+      position: absolute; inset: 17% 0 auto;
+      display: flex; flex-direction: column; align-items: center;
+      transform-style: preserve-3d;
+    }
+    .judge-nameplate {
+      margin-top: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(201,168,76,0.32);
+      background: rgba(9, 12, 20, 0.72);
+      color: var(--gold-light);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .judge-portrait {
+      width: 140px; height: 140px;
+      border-radius: 28px;
+      border: 1px solid rgba(201,168,76,0.22);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,0.14), transparent 34%),
+        linear-gradient(180deg, rgba(37,41,56,0.96), rgba(12,14,22,0.96));
+      box-shadow:
+        0 30px 50px rgba(0,0,0,0.45),
+        inset 0 0 18px rgba(255,255,255,0.06);
+      transform: rotateX(8deg) translateZ(24px);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .judge-portrait img {
+      width: 100%; height: 100%; object-fit: cover;
+      transform: scale(1.03);
+      filter: saturate(1.1) contrast(1.04);
+    }
+    .judge-portrait.fallback::before {
+      content: '👨‍⚖️';
+      font-size: 64px;
+      transform: translateY(2px);
+    }
+    .judge-portrait.fallback::after {
+      content: 'SNOO JUDGE';
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: var(--gold-light);
+      letter-spacing: 0.16em;
+    }
+    .gavel-wrap {
+      position: absolute;
+      right: 34px;
+      top: 106px;
+      width: 98px;
+      height: 84px;
+      transform-origin: 24px 18px;
+      transform: rotate(-24deg) translateZ(38px);
+    }
+    .gavel-wrap.swing {
+      animation: gavelStrike 1.18s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+    .gavel-head {
+      position: absolute;
+      top: 8px;
+      left: 0;
+      width: 36px;
+      height: 20px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #e5c36b, #8d5d22);
+      box-shadow: 0 0 18px rgba(201,168,76,0.24);
+    }
+    .gavel-handle {
+      position: absolute;
+      top: 18px;
+      left: 24px;
+      width: 56px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #996229, #f2d67b);
+    }
+    .gavel-block {
+      position: absolute;
+      right: 4px;
+      bottom: 0;
+      width: 38px;
+      height: 14px;
+      border-radius: 10px;
+      background: rgba(201,168,76,0.28);
+      border: 1px solid rgba(201,168,76,0.22);
+      box-shadow: 0 0 12px rgba(0,0,0,0.28);
+    }
+    .speech-bubble {
+      position: absolute;
+      left: 18px;
+      top: 82px;
+      max-width: 190px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(201,168,76,0.28);
+      background: rgba(14, 18, 30, 0.92);
+      color: var(--text);
+      box-shadow: 0 22px 36px rgba(0,0,0,0.26);
+      transform: translateY(10px) rotate(-2deg);
+      opacity: 0;
+    }
+    .speech-bubble.show {
+      animation: bubbleIn 0.45s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+    }
+    .speech-kicker {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .speech-line {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 22px;
+      line-height: 1.1;
+      color: var(--gold-light);
+    }
+    .speech-subline {
+      margin-top: 6px;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-mid);
+    }
+    .intro-case-card {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 52px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(201,168,76,0.18);
+      background:
+        linear-gradient(180deg, rgba(18,22,32,0.96), rgba(8,10,16,0.96)),
+        rgba(12,14,22,0.96);
+      box-shadow: 0 24px 48px rgba(0,0,0,0.34);
+      transform: translateY(34px) translateZ(20px);
+      opacity: 0;
+    }
+    .intro-case-card.reveal {
+      animation: caseLift 0.55s cubic-bezier(0.2, 1.1, 0.3, 1) forwards;
+    }
+    .intro-case-kicker {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .intro-case-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 18px;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .intro-case-desc {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--text-mid);
+    }
+    .intro-skip {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-mid);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
     /* ── HEADER ──────────────────────────────────────────────────────────── */
     #header {
       flex-shrink: 0;
@@ -185,6 +395,64 @@
       border-radius: var(--r-lg);
       padding: 14px;
       margin-bottom: 10px;
+    }
+    .hero-docket {
+      margin-bottom: 10px;
+      padding: 16px;
+      border-radius: var(--r-lg);
+      border: 1px solid rgba(201,168,76,0.18);
+      background:
+        radial-gradient(circle at top right, rgba(201,168,76,0.14), transparent 34%),
+        linear-gradient(145deg, rgba(18,22,34,0.95), rgba(8,10,16,0.95));
+      box-shadow: 0 22px 38px rgba(0,0,0,0.18);
+    }
+    .hero-kicker {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .hero-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 19px;
+      line-height: 1.35;
+      color: var(--text);
+    }
+    .hero-subtitle {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-mid);
+    }
+    .case-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    .case-chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.04);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--text-mid);
+    }
+    .case-chip strong {
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+    .jury-note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0, 180, 180, 0.08);
+      border: 1px solid rgba(0,180,180,0.16);
+      font-size: 11px;
+      color: #9be5e5;
+      line-height: 1.55;
     }
     .case-meta {
       font-size: 9px; letter-spacing: 0.12em; color: var(--text-dim);
@@ -426,6 +694,42 @@
       background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3);
       padding: 3px 8px; border-radius: 10px;
     }
+    .debate-callout {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: var(--r-lg);
+      border: 1px solid rgba(0,180,180,0.2);
+      background:
+        radial-gradient(circle at top left, rgba(0,180,180,0.16), transparent 32%),
+        linear-gradient(145deg, rgba(10,18,26,0.96), rgba(8,10,16,0.96));
+    }
+    .debate-callout-title {
+      font-family: 'Cinzel', Georgia, serif;
+      font-size: 16px;
+      color: #d8ffff;
+      margin-bottom: 6px;
+    }
+    .debate-callout-text {
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      margin-bottom: 12px;
+    }
+    .debate-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .debate-meta {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: #a8f1f1;
+      background: rgba(0,180,180,0.1);
+      border: 1px solid rgba(0,180,180,0.18);
+    }
 
     /* ── LOADING / EMPTY ──────────────────────────────────────────────────── */
     .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; gap: 12px; }
@@ -446,6 +750,18 @@
     @keyframes flashG   { 0%{background:rgba(0,200,83,0)} 25%{background:rgba(0,200,83,0.22)} 100%{background:rgba(0,200,83,0)} }
     @keyframes flashR   { 0%{background:rgba(229,57,53,0)} 25%{background:rgba(229,57,53,0.22)} 100%{background:rgba(229,57,53,0)} }
     @keyframes flashAu  { 0%{background:rgba(201,168,76,0)} 25%{background:rgba(201,168,76,0.18)} 100%{background:rgba(201,168,76,0)} }
+    @keyframes bubbleIn { from { opacity:0; transform:translateY(12px) rotate(-3deg) scale(0.92); } to { opacity:1; transform:translateY(0) rotate(-2deg) scale(1); } }
+    @keyframes caseLift { from { opacity:0; transform:translateY(34px) translateZ(12px); } to { opacity:1; transform:translateY(0) translateZ(20px); } }
+    @keyframes gavelStrike {
+      0% { transform: rotate(-24deg) translateZ(38px); }
+      24% { transform: rotate(16deg) translateZ(38px); }
+      42% { transform: rotate(56deg) translateZ(38px); }
+      50% { transform: rotate(70deg) translateZ(38px); }
+      58% { transform: rotate(10deg) translateZ(38px); }
+      74% { transform: rotate(50deg) translateZ(38px); }
+      82% { transform: rotate(66deg) translateZ(38px); }
+      100% { transform: rotate(6deg) translateZ(38px); }
+    }
 
     .ani-fade { animation: fadeIn 0.38s ease both; }
     .ani-flash-g { animation: flashG 0.8s ease forwards; }
@@ -474,6 +790,33 @@
 <body>
 <div id="app">
   <div id="flash"></div>
+  <div id="court-intro">
+    <div class="intro-stage">
+      <div class="intro-spotlight"></div>
+      <div class="judge-bench">
+        <div class="judge-portrait" id="judge-portrait">
+          <img
+            src="judge-snoo.png"
+            alt="Judge Snoo"
+            onerror="document.getElementById('judge-portrait').classList.add('fallback'); this.remove();"
+          >
+        </div>
+        <div class="judge-nameplate">Chief Justice Snoo</div>
+      </div>
+      <div class="speech-bubble" id="speech-bubble">
+        <div class="speech-kicker">Court Opening</div>
+        <div class="speech-line">ORDER! ORDER!</div>
+        <div class="speech-subline">The bench is ready. Today's case is entering the chamber.</div>
+      </div>
+      <div class="gavel-wrap" id="gavel-wrap">
+        <div class="gavel-head"></div>
+        <div class="gavel-handle"></div>
+        <div class="gavel-block"></div>
+      </div>
+      <div class="intro-case-card" id="intro-case-card"></div>
+      <button class="intro-skip" onclick="skipCourtIntro()">Skip Intro</button>
+    </div>
+  </div>
 
   <!-- HEADER -->
   <header id="header">
@@ -539,6 +882,7 @@ const S = {
   lb: [],
   lbPeriod: 'alltime',
   loaded: false,
+  introPlayed: false,
 };
 
 // ════════════════════════════════════════════════════════════════════════
@@ -558,6 +902,7 @@ function onMsg(msg) {
     const opts = stakeOpts(S.user.karma);
     S.stake = opts[0] ?? 100;
     renderHeader(); renderView();
+    setTimeout(playCourtIntro, 120);
   }
   if (msg.type === 'RULING_CONFIRMED') {
     S.existingRuling = msg.ruling; S.user = msg.user;
@@ -620,6 +965,109 @@ function toast(msg) {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
+}
+
+function subredditLabel(dc) {
+  return dc.targetScope === 'reddit' || dc.subreddit === 'all'
+    ? 'All of Reddit'
+    : `r/${dc.subreddit}`;
+}
+
+function metricLabel(dc) {
+  return {
+    comments: 'Top-post comments',
+    upvotes: 'Top-post upvotes',
+    frontpage: 'Front page reach',
+    posts: 'Posting volume',
+    'top3comments': 'Top 3 comment total',
+    'top3upvotes': 'Top 3 upvote total',
+    'keyword-top10': 'Keyword in top 10',
+  }[dc.metric] || 'Court metric';
+}
+
+function verdictCopy(dc) {
+  if (!dc) return { yes: 'YES it will', no: "NO it won't" };
+  if (dc.metric === 'frontpage') return { yes: 'YES it breaks out', no: 'NO it stays local' };
+  if (dc.metric === 'posts') return { yes: 'YES the pace hits', no: 'NO it falls short' };
+  if (dc.metric === 'keyword-top10') return { yes: 'YES the debate erupts', no: 'NO it stays quiet' };
+  if (dc.metric === 'top3comments' || dc.metric === 'top3upvotes') {
+    return { yes: 'YES the chamber piles on', no: 'NO it never builds' };
+  }
+  return { yes: 'YES it clears the line', no: 'NO it misses the line' };
+}
+
+function juryPrompt(dc) {
+  if (!dc) return '';
+  if (dc.category === 'community') {
+    return 'Moderator-approved community debate. The jury is deciding whether a player-submitted prediction deserves a guilty verdict.';
+  }
+  if (dc.metric === 'keyword-top10') {
+    return `Watch the discourse. If "${dc.keywords?.[0] || 'the topic'}" shows up in one of the top ten posts, the case is guilty.`;
+  }
+  if (dc.metric === 'frontpage') {
+    return 'This is a breakout test. A single trip to r/all is enough for a guilty ruling.';
+  }
+  if (dc.metric === 'top3comments' || dc.metric === 'top3upvotes') {
+    return 'This hearing measures momentum across multiple posts, not just one lucky breakout.';
+  }
+  return 'Study the room, read the pace of the subreddit, and decide whether the evidence reaches the line.';
+}
+
+function playCourtIntro() {
+  if (S.introPlayed || !S.dailyCase) return;
+  S.introPlayed = true;
+
+  const overlay = document.getElementById('court-intro');
+  const bubble = document.getElementById('speech-bubble');
+  const gavel = document.getElementById('gavel-wrap');
+  const caseCard = document.getElementById('intro-case-card');
+  if (!overlay || !bubble || !gavel || !caseCard) return;
+
+  caseCard.innerHTML = `
+    <div class="intro-case-kicker">${S.dailyCase.topicTag || 'Daily Hearing'} · ${subredditLabel(S.dailyCase)}</div>
+    <div class="intro-case-title">${S.dailyCase.title}</div>
+    <div class="intro-case-desc">${S.dailyCase.description}</div>
+  `;
+
+  overlay.classList.add('show');
+  setTimeout(() => bubble.classList.add('show'), 120);
+  setTimeout(() => {
+    gavel.classList.remove('swing');
+    void gavel.offsetWidth;
+    gavel.classList.add('swing');
+    speakOrder();
+  }, 380);
+  setTimeout(() => caseCard.classList.add('reveal'), 1220);
+  setTimeout(() => hideCourtIntro(), 3600);
+}
+
+function hideCourtIntro() {
+  const overlay = document.getElementById('court-intro');
+  const bubble = document.getElementById('speech-bubble');
+  const caseCard = document.getElementById('intro-case-card');
+  if (bubble) bubble.classList.remove('show');
+  if (caseCard) caseCard.classList.remove('reveal');
+  if (overlay) overlay.classList.remove('show');
+  try {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  } catch (_err) {}
+}
+
+function skipCourtIntro() {
+  S.introPlayed = true;
+  hideCourtIntro();
+}
+
+function speakOrder() {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance('Order! Order!');
+    utterance.rate = 0.92;
+    utterance.pitch = 0.78;
+    utterance.volume = 0.75;
+    window.speechSynthesis.speak(utterance);
+  } catch (_err) {}
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -814,6 +1262,18 @@ function renderDaily(c) {
 
   c.innerHTML = `
     ${scalesBlock}
+    <div class="hero-docket ani-fade">
+      <div class="hero-kicker">${dc.topicTag || 'Daily Hearing'} · ${dc.category === 'community' ? 'Moderator Approved' : 'Live Reddit Signal'}</div>
+      <div class="hero-title">${dc.title}</div>
+      <div class="hero-subtitle">${dc.description}</div>
+      <div class="case-chip-row">
+        <div class="case-chip"><strong>Scope:</strong> ${subredditLabel(dc)}</div>
+        <div class="case-chip"><strong>Metric:</strong> ${metricLabel(dc)}</div>
+        <div class="case-chip"><strong>Threshold:</strong> ${fmt(dc.threshold)}</div>
+        ${dc.keywords?.length ? `<div class="case-chip"><strong>Keyword:</strong> ${dc.keywords[0]}</div>` : ''}
+      </div>
+      <div class="jury-note">${juryPrompt(dc)}</div>
+    </div>
     <div class="case-card ani-fade">
       <div class="case-meta">Case #${dc.caseId} · r/${dc.subreddit || '?'} · ${dc.metric || ''}</div>
       <div class="case-title">${dc.title}</div>
@@ -825,12 +1285,12 @@ function renderDaily(c) {
         <div class="v-btn v-btn-g ${S.pick==='guilty'?'sel':''}" onclick="pickVerdict('guilty')">
           <span class="v-emoji">⚖️</span>
           <span class="v-label">GUILTY</span>
-          <span class="v-sub">YES it will</span>
+          <span class="v-sub">${verdictCopy(dc).yes}</span>
         </div>
         <div class="v-btn v-btn-i ${S.pick==='innocent'?'sel':''}" onclick="pickVerdict('innocent')">
           <span class="v-emoji">🔔</span>
           <span class="v-label">INNOCENT</span>
-          <span class="v-sub">NO it won't</span>
+          <span class="v-sub">${verdictCopy(dc).no}</span>
         </div>
       </div>
     </div>
@@ -888,6 +1348,19 @@ function renderSessions(c) {
           <div class="event-desc">Auto-generated from Reddit trends</div>
         </div>
         <div class="event-badge">WEEKLY</div>
+      </div>
+      <div class="debate-callout">
+        <div class="debate-callout-title">Friendly Debate Chamber</div>
+        <div class="debate-callout-text">
+          Pitch a poll, subreddit showdown, or full-Reddit question and send it to the moderators.
+          Approved submissions can become a future Daily Docket case.
+        </div>
+        <div class="debate-meta-row">
+          <div class="debate-meta">Moderator Review</div>
+          <div class="debate-meta">Subreddit or All Reddit</div>
+          <div class="debate-meta">Player-Created Questions</div>
+        </div>
+        <div class="submit-btn ready" onclick="requestDebateForm()">🗳️ SUBMIT A DEBATE IDEA</div>
       </div>
       <div style="margin-top:16px;padding:14px;background:var(--surface);border:1px solid var(--border-dim);border-radius:var(--r-md);text-align:center;">
         <div style="font-size:12px;color:var(--text-dim);line-height:1.7;">
@@ -971,6 +1444,11 @@ function doSubmit() {
   const btn = document.querySelector('.submit-btn.ready');
   if (btn) { btn.className = 'submit-btn off'; btn.textContent = '⏳ RECORDING…'; }
   send({ type: 'SUBMIT_RULING', prediction: S.pick, stake: S.stake });
+}
+
+function requestDebateForm() {
+  send({ type: 'OPEN_DEBATE_FORM' });
+  toast('Opening the debate submission form…');
 }
 
 // ════════════════════════════════════════════════════════════════════════

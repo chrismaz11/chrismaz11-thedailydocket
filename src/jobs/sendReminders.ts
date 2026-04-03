@@ -1,7 +1,8 @@
 import { Devvit } from '@devvit/public-api';
 import { keys } from '../utils/redis';
-import { getYesterday, getToday } from '../utils/dates';
+import { getToday, getWeekForDate, getYesterday } from '../utils/dates';
 import { calculateWinnings } from '../utils/karma';
+import { getDailyPostUrl } from '../utils/docket';
 
 // Daily verdict reminder (9 AM ET)
 Devvit.addSchedulerJob({
@@ -61,8 +62,13 @@ Devvit.addSchedulerJob({
             ruling.result = won ? 'correct' : 'incorrect';
             await context.redis.set(rulingKey, JSON.stringify(ruling));
             
+            const resolvedWeek = getWeekForDate(yesterday);
+            await context.redis.zAdd(keys.leaderboard.allTime(), { member: userId, score: user.karma });
+            await context.redis.zAdd(keys.leaderboard.daily(yesterday), { member: userId, score: user.karma });
+            await context.redis.zAdd(keys.leaderboard.weekly(resolvedWeek), { member: userId, score: user.karma });
+
             if (user?.reminderSettings?.redditDM) {
-              await sendVerdictDM(context, userId, ruling, caseResult, won, ruling.karmaChange);
+              await sendVerdictDM(context, user, ruling, caseResult, won, ruling.karmaChange);
             }
           }
         }
@@ -74,7 +80,7 @@ Devvit.addSchedulerJob({
           const user = JSON.parse(userData);
           const todayRuling = await context.redis.get(keys.userRuling(userId, today));
           if (!todayRuling && user.currentStreak > 0) {
-            await sendStreakRiskDM(context, userId, user);
+            await sendStreakRiskDM(context, user);
           }
         }
         
@@ -96,7 +102,11 @@ Devvit.addSchedulerJob({
   }
 });
 
-async function sendVerdictDM(context: any, userId: string, ruling: any, caseResult: any, won: boolean, karmaChange: number) {
+async function sendVerdictDM(context: any, user: any, ruling: any, caseResult: any, won: boolean, karmaChange: number) {
+  const postUrl = await getDailyPostUrl(context, getToday()) ?? await getDailyPostUrl(context, ruling.caseId);
+  const username = user?.username || (await context.reddit.getUserById(user.userId))?.username;
+  if (!username) return;
+
   const message = `
 ⚖️ **The Daily Docket Verdict is In!**
 
@@ -107,12 +117,12 @@ async function sendVerdictDM(context: any, userId: string, ruling: any, caseResu
 
 ${won ? `🎉 **CORRECT!** You won ${karmaChange} karma!` : `💔 **INCORRECT.** You lost ${Math.abs(karmaChange)} karma.`}
 
-**[Render Today's Verdict](${context.postUrl || '#'})**
+**[Render Today's Verdict](${postUrl || 'https://www.reddit.com/r/thedailydocket/'})**
   `;
   
   try {
     await context.reddit.sendPrivateMessage({
-      to: userId,
+      to: username,
       subject: won ? 'The Daily Docket: Verdict Correct!' : 'The Daily Docket: Verdict Rendered',
       text: message,
     });
@@ -121,18 +131,22 @@ ${won ? `🎉 **CORRECT!** You won ${karmaChange} karma!` : `💔 **INCORRECT.**
   }
 }
 
-async function sendStreakRiskDM(context: any, userId: string, user: any) {
+async function sendStreakRiskDM(context: any, user: any) {
+  const postUrl = await getDailyPostUrl(context, getToday());
+  const username = user?.username || (await context.reddit.getUserById(user.userId))?.username;
+  if (!username) return;
+
   const message = `
 🔥 **Your ${user.currentStreak}-Day Streak is at Risk!**
 
 You haven't rendered today's verdict yet. Court closes at midnight ET!
 
-**[Save Your Streak](${context.postUrl || '#'})**
+**[Save Your Streak](${postUrl || 'https://www.reddit.com/r/thedailydocket/'})**
   `;
   
   try {
     await context.reddit.sendPrivateMessage({
-      to: userId,
+      to: username,
       subject: '🔥 Streak Alert!',
       text: message,
     });

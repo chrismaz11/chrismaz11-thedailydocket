@@ -2,12 +2,15 @@ import { Devvit, useWebView } from '@devvit/public-api';
 import { UserProfile, DailyCase, UserRuling, LeaderboardEntry } from './types';
 import { keys } from './utils/redis';
 import { canAffordStake } from './utils/karma';
-import { getToday, getTomorrow, getCurrentWeek } from './utils/dates';
+import { getToday, getCurrentWeek } from './utils/dates';
+import { ensureDailyCase, ensureDailyPost, registerHomeSubreddit } from './utils/docket';
+import { openDebateReviewForm, openDebateSubmissionForm } from './forms/debate';
 
 // Register scheduler jobs
 import './jobs/generateDailyCase';
 import './jobs/resolveCases';
 import './jobs/sendReminders';
+import './triggers/registerInstallation';
 
 // ─── Message types ────────────────────────────────────────────────────────────
 
@@ -15,7 +18,8 @@ type WebToDevvit =
   | { type: 'INIT_REQUEST' }
   | { type: 'SUBMIT_RULING'; prediction: 'guilty' | 'innocent'; stake: number }
   | { type: 'TOGGLE_REMINDERS' }
-  | { type: 'GET_LEADERBOARD'; period: 'daily' | 'weekly' | 'alltime' };
+  | { type: 'GET_LEADERBOARD'; period: 'daily' | 'weekly' | 'alltime' }
+  | { type: 'OPEN_DEBATE_FORM' };
 
 type DevvitToWeb =
   | { type: 'INIT'; user: UserProfile; dailyCase: DailyCase | null; existingRuling: UserRuling | null }
@@ -30,27 +34,34 @@ Devvit.configure({ redditAPI: true, redis: true });
 
 // Menu item to create the post — accessible from the subreddit "..." menu
 Devvit.addMenuItem({
-  label: '⚖️ Create Daily Docket Post',
+  label: '⚖️ File Today’s Docket',
   location: 'subreddit',
-  onPress: async (event, context) => {
-    const post = await context.reddit.submitPost({
-      subredditName: context.subredditName!,
-      title: 'The Daily Docket — Predict Reddit Trends',
-      preview: (
-        <vstack height="100%" width="100%" alignment="center middle" backgroundColor="#080810">
-          <text size="xxlarge" color="#C9A84C">⚖️ The Daily Docket</text>
-          <text size="small" color="#555555">Loading…</text>
-        </vstack>
-      ),
-    });
-    context.ui.showToast('Daily Docket post created!');
-    context.ui.navigateTo(post);
+  forUserType: 'moderator',
+  onPress: async (_event, context) => {
+    const homeSubreddit = await registerHomeSubreddit(context);
+    const { dailyCase } = await ensureDailyCase(context);
+    const postId = await ensureDailyPost(context, dailyCase, homeSubreddit);
+    const post = await context.reddit.getPostById(postId);
+    context.ui.showToast('Today’s docket is live.');
+    if (post) {
+      context.ui.navigateTo(post);
+    }
+  },
+});
+
+Devvit.addMenuItem({
+  label: '🗳️ Review Debate Queue',
+  location: 'subreddit',
+  forUserType: 'moderator',
+  onPress: async (_event, context) => {
+    await openDebateReviewForm(context);
   },
 });
 
 async function loadInitData(context: Devvit.Context) {
   const userId = context.userId;
   if (!userId) return null;
+  const username = await context.reddit.getCurrentUsername();
 
   const userKey = keys.user(userId);
   const userData = await context.redis.get(userKey);
@@ -58,9 +69,14 @@ async function loadInitData(context: Devvit.Context) {
 
   if (userData) {
     user = JSON.parse(userData);
+    if (username && user.username !== username) {
+      user.username = username;
+      await context.redis.set(userKey, JSON.stringify(user));
+    }
   } else {
     user = {
       userId,
+      username,
       karma: 1000,
       totalRulings: 0,
       correctRulings: 0,
@@ -75,8 +91,8 @@ async function loadInitData(context: Devvit.Context) {
   }
 
   const today = getToday();
-  const caseData = await context.redis.get(keys.dailyCase(today));
-  const dailyCase: DailyCase | null = caseData ? JSON.parse(caseData) : null;
+  await registerHomeSubreddit(context);
+  const { dailyCase } = await ensureDailyCase(context, today);
 
   const rulingData = await context.redis.get(keys.userRuling(userId, today));
   const existingRuling: UserRuling | null = rulingData ? JSON.parse(rulingData) : null;
@@ -160,7 +176,7 @@ Devvit.addCustomPostType({
             await context.redis.set(keys.userRuling(userId, today), JSON.stringify(ruling));
             await context.redis.set(keys.dailyCase(today), JSON.stringify(dailyCase));
             await context.redis.set(keys.user(userId), JSON.stringify(user));
-            await context.redis.zAdd(keys.reminders(getTomorrow()), { member: userId, score: Date.now() });
+            await context.redis.zAdd(keys.reminders(today), { member: userId, score: Date.now() });
 
             const week = getCurrentWeek();
             await context.redis.zAdd(keys.leaderboard.allTime(), { member: userId, score: user.karma });
@@ -168,6 +184,11 @@ Devvit.addCustomPostType({
             await context.redis.zAdd(keys.leaderboard.weekly(week), { member: userId, score: user.karma });
 
             hook.postMessage({ type: 'RULING_CONFIRMED', ruling, user });
+          }
+
+          if (msg.type === 'OPEN_DEBATE_FORM') {
+            await openDebateSubmissionForm(context);
+            return;
           }
 
           // ── TOGGLE REMINDERS ──────────────────────────────────────────────
@@ -212,6 +233,7 @@ Devvit.addCustomPostType({
     });
 
     // Preview screen — clicking ENTER THE COURT mounts the webview; it sends INIT_REQUEST on load
+    registerHomeSubreddit(context).catch(() => undefined);
     return (
       <vstack height="100%" width="100%" alignment="center middle" backgroundColor="#080810">
         <vstack gap="medium" alignment="center" padding="large">

@@ -2,6 +2,7 @@
 export interface UserProfile {
   [key: string]: any;
   userId: string;
+  username?: string;
   karma: number;
   totalRulings: number;
   correctRulings: number;
@@ -22,7 +23,7 @@ export interface DailyCase {
   caseId: string; // YYYY-MM-DD format
   title: string;
   description: string;
-  category: 'reddit' | 'event' | 'trending';
+  category: 'reddit' | 'event' | 'trending' | 'community';
   status: 'open' | 'closed' | 'resolved';
   opensAt: string; // ISO timestamp
   closesAt: string;
@@ -32,8 +33,12 @@ export interface DailyCase {
   innocentCount: number; // NO votes
   actualResult?: 'guilty' | 'innocent' | 'tie';
   subreddit: string; // e.g. "AskReddit"
-  metric: 'comments' | 'upvotes' | 'frontpage' | 'posts'; // what to measure
+  metric: 'comments' | 'upvotes' | 'frontpage' | 'posts' | 'top3comments' | 'top3upvotes' | 'keyword-top10'; // what to measure
   threshold: number; // value to beat
+  targetScope?: 'subreddit' | 'reddit';
+  keywords?: string[];
+  topicTag?: string;
+  sourceSubmissionId?: string;
   resolutionData?: {
     actualValue: number;
     threshold: number;
@@ -107,4 +112,24 @@ export interface LeaderboardEntry {
   rank: number;
   streak?: number;
   isCurrentUser?: boolean;
+}
+
+export interface DebateSubmission {
+  [key: string]: any;
+  submissionId: string;
+  submittedByUserId: string;
+  submittedByUsername?: string;
+  title: string;
+  description: string;
+  targetScope: 'subreddit' | 'reddit';
+  subreddit: string;
+  metric: DailyCase['metric'];
+  threshold: number;
+  keywords?: string[];
+  topicTag?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'scheduled';
+  moderatorNote?: string;
+  reviewedByUsername?: string;
+  reviewedAt?: string;
+  createdAt: string;
 }

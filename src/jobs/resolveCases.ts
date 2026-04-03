@@ -45,6 +45,17 @@ Devvit.addSchedulerJob({
             ? posts[0].numberOfComments
             : posts[0].score;
         }
+      } else if (metric === 'top3comments' || metric === 'top3upvotes') {
+        const listing = context.reddit.getTopPosts({
+          subredditName: subreddit,
+          timeframe: 'day',
+          limit: 3,
+          pageSize: 3,
+        });
+        const posts = await listing.get(3);
+        actualValue = posts.reduce((sum, post) => (
+          sum + (metric === 'top3comments' ? post.numberOfComments : post.score)
+        ), 0);
       } else if (metric === 'frontpage') {
         // Check if any top post on r/all today came from this subreddit
         const listing = context.reddit.getTopPosts({
@@ -68,6 +79,24 @@ Devvit.addSchedulerJob({
         });
         const posts = await listing.get(100);
         actualValue = posts.filter((p) => p.createdAt.getTime() >= cutoff).length;
+      } else if (metric === 'keyword-top10') {
+        const keywords = (dailyCase.keywords ?? []).map((value) => value.toLowerCase());
+        if (keywords.length === 0) {
+          console.error(`Case ${yesterday} is missing keywords for keyword-top10 resolution`);
+          return;
+        }
+
+        const listing = context.reddit.getTopPosts({
+          subredditName: subreddit,
+          timeframe: 'day',
+          limit: 10,
+          pageSize: 10,
+        });
+        const posts = await listing.get(10);
+        actualValue = posts.some((post) => {
+          const title = post.title.toLowerCase();
+          return keywords.some((keyword) => title.includes(keyword));
+        }) ? 1 : 0;
       }
     } catch (err) {
       console.error(`Reddit API error resolving case ${yesterday}:`, err);

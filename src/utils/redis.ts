@@ -15,4 +15,13 @@ export const keys = {
   activeSessions: () => `sessions:active`,
   pendingReminders: (userId: string) => `user:${userId}:pending`,
   dailyPost: (date: string) => `post:${date}`,
+  config: {
+    homeSubreddit: () => 'config:home-subreddit',
+  },
+  debateSubmission: (submissionId: string) => `debate:${submissionId}`,
+  debateQueue: {
+    pending: () => 'debate:queue:pending',
+    approved: () => 'debate:queue:approved',
+  },
+  debateReview: (userId: string) => `debate:review:${userId}`,
 };
