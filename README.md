@@ -15,8 +15,9 @@ A Reddit Devvit prediction game where users render daily verdicts on Reddit tren
 ```bash
 npm install
 npm run dev    # Playtest locally
-npm run build  # Build for production
-npm run upload # Upload to Devvit
+npm run build  # Type-check / validate locally
+npm run upload # Upload a new testable Devvit version
+npm run publish # Submit a version to Reddit for review/publishing
 ```
 
 ## Configuration

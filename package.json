@@ -4,8 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "npx devvit playtest",
-    "build": "npx devvit build",
-    "upload": "npx devvit upload"
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck",
+    "upload": "npx devvit upload",
+    "publish": "npx devvit publish"
   },
   "dependencies": {
     "@devvit/public-api": "0.12.16",
