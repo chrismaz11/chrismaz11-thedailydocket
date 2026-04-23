@@ -13,7 +13,7 @@
     "@devvit/public-api": "0.12.16",
     "date-fns": "2.30.0",
     "date-fns-tz": "2.0.0",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.8",
